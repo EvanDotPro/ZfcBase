@@ -71,7 +71,7 @@ abstract class ModelAbstract
      * @param mixed $array
      * @return array
      */
-    public function toArray($array = false)
+    public function toArray($array = false, $filter = false)
     {
         $array = $array ?: get_object_vars($this);
         foreach ($array as $key => $value) {
@@ -92,6 +92,9 @@ abstract class ModelAbstract
             } elseif (is_array($value) && count($value) > 0) {
                 $array[$key] = $this->toArray($value);
             } elseif ($value !== NULL && !is_array($value)) {
+                if (is_callable($filter)){
+                    $value = $filter($value);
+                }
                 $array[$key] = $value;
             }
         }
