@@ -6,7 +6,7 @@ use Zend\Stdlib\IsAssocArray,
     DateTime;
 
 abstract class ModelAbstract
-{
+{ 
     protected $exts = array();
     const ARRAYSET_PRESERVE_KEYS    = 0;
     const ARRAYSET_RESET_KEYS       = 1;
@@ -17,7 +17,7 @@ abstract class ModelAbstract
      * @param array $array
      * @return ZfcBase\Model\ModelAbstract
      */
-    public static function fromArray($array)
+    public static function fromArray($array, $filter = null)
     {
         if (!IsAssocArray::test($array)) {
             return false;
@@ -28,6 +28,9 @@ abstract class ModelAbstract
         foreach ($array as $key => $value) {
             $setter = static::fieldToSetterMethod($key);
             if (is_callable(array($model, $setter))) {
+                if (is_callable($filter)){
+                    $value = $filter($value);
+                }
                 $model->$setter($value);
             }
         }
