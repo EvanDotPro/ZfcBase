@@ -30,11 +30,25 @@ abstract class DbMapperAbstract extends EventProvider
     protected $tableName;
 
     /**
+     * The class name of the model this mapper is using
+     *
+     * @var string 
+     */
+    protected static $modelClass;
+
+    /**
      * Default database adapter
      *
      * @var Zend\Db\Adapter\AbstractAdapter
      */
     protected static $defaultAdapter;
+
+    /**
+     * A runtime cache of model objects in use
+     * 
+     * @var array
+     */
+    protected $runtimeCache = array();
 
     /**
      * Constructor
@@ -58,7 +72,7 @@ abstract class DbMapperAbstract extends EventProvider
             $readAdapter = $writeAdapter;
         }
 
-        $this->readAdapter = $readAdapter;
+        $this->readAdapter  = $readAdapter;
         $this->writeAdapter = $writeAdapter;
 
         $this->init();
@@ -100,7 +114,7 @@ abstract class DbMapperAbstract extends EventProvider
      * Set tableName.
      *
      * @param $tableName the value to be set
-     * @return ZfcBase\Mapper\DbMapperAbstract
+     * @return DbMapperAbstract
      */
     public function setTableName($tableName)
     {
@@ -127,5 +141,38 @@ abstract class DbMapperAbstract extends EventProvider
     public static function getDefaultAdapter()
     {
         return self::$defaultAdapter;
+    }
+
+    /**
+     * Set a cache value
+     * 
+     * @param mixed $model 
+     * @param array|string $keys 
+     * @return DbMapperAbstract
+     */
+    protected function setCacheValue($value, $keys)
+    {
+        if (is_array($keys)) {
+            foreach ($keys as $key) {
+                $this->runtimeCache[$key] = $value;
+            }
+        } else {
+            $this->runtimeCache[$keys] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Return a cache value 
+     * 
+     * @param mixed $key 
+     * @return mixed
+     */
+    protected function getCacheValue($key)
+    {
+        if (!isset($this->runtimeCache[$key])) {
+            return false;
+        }  
+        return $this->runtimeCache[$key];
     }
 }
