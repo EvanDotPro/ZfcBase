@@ -171,7 +171,7 @@ abstract class DbMapperAbstract extends EventProvider
     protected function getCacheValue($key)
     {
         if (!isset($this->runtimeCache[$key])) {
-            return false;
+            return null;
         }  
         return $this->runtimeCache[$key];
     }
