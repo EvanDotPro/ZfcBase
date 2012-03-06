@@ -6,7 +6,7 @@ use DateTime,
     Traversable;
 
 abstract class ModelAbstract
-{
+{ 
     protected $exts = array();
     const ARRAYSET_PRESERVE_KEYS    = 0;
     const ARRAYSET_RESET_KEYS       = 1;
@@ -17,7 +17,7 @@ abstract class ModelAbstract
      * @param array $array
      * @return ZfcBase\Model\ModelAbstract
      */
-    public static function fromArray($array)
+    public static function fromArray($array, $filter = null)
     {
         if (!is_array($array) && !$array instanceof Traversable) {
             return false;
@@ -27,6 +27,9 @@ abstract class ModelAbstract
         foreach ($array as $key => $value) {
             $setter = static::fieldToSetterMethod($key);
             if (is_callable(array($model, $setter))) {
+                if (is_callable($filter)){
+                    $value = $filter($value);
+                }
                 $model->$setter($value);
             }
         }
@@ -70,7 +73,7 @@ abstract class ModelAbstract
      * @param mixed $array
      * @return array
      */
-    public function toArray($array = false)
+    public function toArray($array = false, $filter = false)
     {
         $array = $array ?: get_object_vars($this);
         foreach ($array as $key => $value) {
@@ -91,6 +94,9 @@ abstract class ModelAbstract
             } elseif (is_array($value) && count($value) > 0) {
                 $array[$key] = $this->toArray($value);
             } elseif ($value !== NULL && !is_array($value)) {
+                if (is_callable($filter)){
+                    $value = $filter($value);
+                }
                 $array[$key] = $value;
             }
         }
