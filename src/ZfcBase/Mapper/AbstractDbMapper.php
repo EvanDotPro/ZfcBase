@@ -11,6 +11,7 @@ use Zend\Db\Sql\Predicate\Predicate;
 use Zend\Db\Sql\Expression;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
+use Zend\Stdlib\Exception\InvalidArgumentException;
 use ZfcBase\EventManager\EventProvider;
 use ZfcBase\Db\Adapter\MasterSlaveAdapterInterface;
 
@@ -79,13 +80,12 @@ abstract class AbstractDbMapper extends EventProvider
 
         $select = new Select($tableName);
 
-        if ($where instanceof Predicate){
+        if ($where instanceof Predicate || is_array($where)){
             $select->where($where);
-        } elseif (is_array($where)){
-            foreach ($where as $wh){
-                $select->where($wh);
-            }
+        } else {
+            throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
         }
+
 
         $select->columns(array('c' => new Expression('count(*)')));
         $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
@@ -106,12 +106,10 @@ abstract class AbstractDbMapper extends EventProvider
         $tableName = $tableName ?: $this->tableName;
         $select = new Select($tableName);
 
-        if ($where instanceof Predicate){
+        if ($where instanceof Predicate || is_array($where)){
             $select->where($where);
-        } elseif (is_array($where)){
-            foreach ($where as $wh){
-                $select->where($wh);
-            }
+        } else {
+            throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
         }
 
         $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
@@ -190,7 +188,7 @@ abstract class AbstractDbMapper extends EventProvider
         $tableName = $tableName ?: $this->tableName;
 
         $rowData = $this->entityToArray($entity, $hydrator);
-        $sql = new Sql($this->getDbSlaveAdapter(), $tableName);
+        $sql = new Sql($this->getDbAdapter(), $tableName);
 
         $update = $sql->update();
         $update->set($rowData);
@@ -205,21 +203,21 @@ abstract class AbstractDbMapper extends EventProvider
      * helper method to begin a transaction
      */
     public function beginTransaction(){
-        $this->getDbSlaveAdapter()->driver->getConnection()->beginTransaction();
+        $this->getDbAdapter()->driver->getConnection()->beginTransaction();
     }
 
     /**
      * helper method to commit
      */
     public function commit(){
-        $this->getDbSlaveAdapter()->driver->getConnection()->commit();
+        $this->getDbAdapter()->driver->getConnection()->commit();
     }
 
     /**
      * helper method to rollback
      */
     public function rollback(){
-        $this->getDbSlaveAdapter()->driver->getConnection()->getConnection()->rollback();
+        $this->getDbAdapter()->driver->getConnection()->getConnection()->rollback();
     }
 
     /**
