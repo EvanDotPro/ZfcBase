@@ -84,7 +84,7 @@ abstract class AbstractDbMapper extends EventProvider
      * @param array|Predicate $where
      * @param string $tableName
      *
-     * @return \Zend\Db\ResultSet\HydratingResultSet
+     * @return HydratingResultSet
      */
     public function select($where, $tableName = null){
         $tableName = $tableName ?: $this->tableName;
