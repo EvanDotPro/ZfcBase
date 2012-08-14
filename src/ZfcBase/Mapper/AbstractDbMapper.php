@@ -72,11 +72,48 @@ abstract class AbstractDbMapper extends EventProvider
         }
 
         $select->columns(array('c' => new Expression('count(*)')));
-        $stmt = $this->dbAdapter->query($select->getSqlString());
+        $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
         $resultSet = $stmt->execute();
         $row = $resultSet->current();
 
         return (int)$row['c'];
+    }
+
+    /**
+     * a basic select
+     * @param array|Predicate $where
+     * @param string $tableName
+     *
+     * @return \Zend\Db\ResultSet\HydratingResultSet
+     */
+    public function select($where, $tableName = null){
+        $tableName = $tableName ?: $this->tableName;
+        $select = new Select($tableName);
+
+        if ($where instanceof Predicate){
+            $select->where($where);
+        } elseif (is_array($where)){
+            foreach ($where as $wh){
+                $select->where($wh);
+            }
+        }
+
+        $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
+        $result = $stmt->execute();
+
+        $resultSet = $this->getResultSet();
+
+        if (isset($entityPrototype)) {
+            $resultSet->setObjectPrototype($entityPrototype);
+        }
+
+        if (isset($hydrator)) {
+            $resultSet->setHydrator($hydrator);
+        }
+
+        $resultSet->initialize($result);
+
+        return $resultSet;
     }
 
     /**
@@ -137,7 +174,7 @@ abstract class AbstractDbMapper extends EventProvider
         $tableName = $tableName ?: $this->tableName;
 
         $rowData = $this->entityToArray($entity, $hydrator);
-        $sql = new Sql($this->getDbAdapter(), $tableName);
+        $sql = new Sql($this->getDbSlaveAdapter(), $tableName);
 
         $update = $sql->update();
         $update->set($rowData);
