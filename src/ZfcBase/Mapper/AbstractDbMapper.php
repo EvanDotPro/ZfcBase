@@ -82,7 +82,7 @@ abstract class AbstractDbMapper extends EventProvider
 
         if ($where instanceof Predicate || is_array($where)){
             $select->where($where);
-        } else {
+        } elseif (null !== $where) {
             throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
         }
 
@@ -108,7 +108,7 @@ abstract class AbstractDbMapper extends EventProvider
 
         if ($where instanceof Predicate || is_array($where)){
             $select->where($where);
-        } else {
+        } elseif (null !== $where) {
             throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
         }
 
