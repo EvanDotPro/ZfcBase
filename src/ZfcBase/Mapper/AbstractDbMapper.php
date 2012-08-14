@@ -55,9 +55,12 @@ abstract class AbstractDbMapper extends EventProvider
      * @param Adapter $dbAdapter
      * @param HydratorInterface $hydrator
      */
-    public function __construct(Adapter $dbAdapter = null, $hydrator = null){
+    public function __construct(Adapter $dbAdapter = null, $entityPrototype = null, $hydrator = null){
         if (null !== $dbAdapter){
             $this->setDbAdapter($dbAdapter);
+        }
+        if (null !== $entityPrototype){
+            $this->setEntityPrototype($entityPrototype);
         }
         if (null !== $hydrator){
             $this->setHydrator($hydrator);
