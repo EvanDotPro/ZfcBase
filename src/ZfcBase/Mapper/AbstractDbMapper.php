@@ -199,6 +199,27 @@ abstract class AbstractDbMapper extends EventProvider
     }
 
     /**
+     * helper method to begin a transaction
+     */
+    public function beginTransaction(){
+        $this->getDbSlaveAdapter()->driver->getConnection()->beginTransaction();
+    }
+
+    /**
+     * helper method to commit
+     */
+    public function commit(){
+        $this->getDbSlaveAdapter()->driver->getConnection()->commit();
+    }
+
+    /**
+     * helper method to rollback
+     */
+    public function rollback(){
+        $this->getDbSlaveAdapter()->driver->getConnection()->getConnection()->rollback();
+    }
+
+    /**
      * @return object
      */
     public function getEntityPrototype()
