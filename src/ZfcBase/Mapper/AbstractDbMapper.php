@@ -283,7 +283,7 @@ abstract class AbstractDbMapper extends EventProvider
      *
      * @return Select
      */
-    protected function select()
+    protected function getSelectForPrototype()
     {
         if (!$this->selectPrototype) {
             $this->selectPrototype = new Select;
