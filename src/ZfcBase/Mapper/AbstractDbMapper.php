@@ -7,6 +7,8 @@ use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\ResultSet\HydratingResultSet;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
+use Zend\Db\Sql\Predicate\Predicate;
+use Zend\Db\Sql\Expression;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
 use ZfcBase\EventManager\EventProvider;
@@ -18,7 +20,7 @@ abstract class AbstractDbMapper extends EventProvider
      * @var Adapter
      */
     protected $dbAdapter;
-    
+
     /**
      * @var Adapter
      */
@@ -43,6 +45,39 @@ abstract class AbstractDbMapper extends EventProvider
      * @var Select
      */
     protected $selectPrototype;
+
+    /**
+     * @var string name of default table. Will be used when null is passed for the table name in methods
+     */
+    protected $tableName;
+
+    /**
+     * return the row count for a table or an array of predicates
+     * @param array|\Zend\Db\Sql\Predicate\Predicate $where
+     * @param string $tableName optional table name to perform count on
+     *
+     * @return int
+     */
+    public function count($where = null, $tableName = null){
+        $tableName = $tableName ?: $this->tableName;
+
+        $select = new Select($tableName);
+
+        if ($where instanceof \Zend\Db\Sql\Predicate\Predicate){
+            $select->where($where);
+        } elseif (is_array($where)){
+            foreach ($where as $wh){
+                $select->where($wh);
+            }
+        }
+
+        $select->columns(array('c' => new Expression('count(*)')));
+        $stmt = $this->dbAdapter->query($select->getSqlString());
+        $resultSet = $stmt->execute();
+        $row = $resultSet->current();
+
+        return (int)$row['c'];
+    }
 
     /**
      * @param Select $select
@@ -152,7 +187,7 @@ abstract class AbstractDbMapper extends EventProvider
         }
         return $this;
     }
-    
+
     /**
      * @return Adapter
      */
@@ -160,7 +195,7 @@ abstract class AbstractDbMapper extends EventProvider
     {
         return $this->dbSlaveAdapter ?: $this->dbAdapter;
     }
-    
+
     /**
      * @param Adapter $dbAdapter
      * @return AbstractDbMapper
