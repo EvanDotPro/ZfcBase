@@ -51,6 +51,11 @@ abstract class AbstractDbMapper extends EventProvider
      */
     protected $tableName;
 
+    
+    public function __construct(Adapter $dbAdapter){
+        $this->dbAdapter = $dbAdapter;
+    }
+
     /**
      * return the row count for a table or an array of predicates
      * @param array|Predicate $where
