@@ -53,7 +53,7 @@ abstract class AbstractDbMapper extends EventProvider
 
     /**
      * return the row count for a table or an array of predicates
-     * @param array|string|\Zend\Db\Sql\Predicate\Predicate $where
+     * @param array|Predicate $where
      * @param string $tableName optional table name to perform count on
      *
      * @return int
@@ -63,7 +63,7 @@ abstract class AbstractDbMapper extends EventProvider
 
         $select = new Select($tableName);
 
-        if ($where instanceof \Zend\Db\Sql\Predicate\Predicate || is_string($where)){
+        if ($where instanceof Predicate){
             $select->where($where);
         } elseif (is_array($where)){
             foreach ($where as $wh){
