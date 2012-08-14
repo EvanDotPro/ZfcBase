@@ -4,6 +4,7 @@ namespace ZfcBaseTest\Mapper;
 use PHPUnit_Framework_TestCase;
 use ZfcBaseTest\Bootstrap;
 use Zend\Db\Adapter\Adapter;
+use Zend\Db\Exception\InvalidArgumentException;
 use ZfcBase\Db\Adapter\MasterSlaveAdapter;
 use ZfcBaseTest\Mapper\TestAsset\TestMapper;
 
@@ -18,9 +19,23 @@ class ProvidesEventsFormTest extends PHPUnit_Framework_TestCase
         $this->mockPlatform = $this->getMock('Zend\Db\Adapter\Platform\PlatformInterface');
         $this->mockStatement = $this->getMock('Zend\Db\Adapter\Driver\StatementInterface');
         $this->mockDriver->expects($this->any())->method('createStatement')->will($this->returnValue($this->mockStatement));
-        
+
         $this->adapter = new Adapter($this->mockDriver, $this->mockPlatform);
         $this->masterSlaveAdapter = new MasterSlaveAdapter($this->adapter, $this->mockDriver, $this->mockPlatform);
+    }
+
+    public function testCountWithStringThrowsException(){
+        $this->mapper = new TestMapper($this->adapter);
+        $littleBobbyTables = "Robert'; DROP TABLE Students;--";
+        $this->setExpectedException(InvalidArgumentException);
+        $this->mapper->count("name = '" . $littleBobbyTables . "'");
+    }
+
+    public function testSelectWithStringThrowsException(){
+        $this->mapper = new TestMapper($this->adapter);
+        $littleBobbyTables = "Robert'; DROP TABLE Students;--";
+        $this->setExpectedException(InvalidArgumentException);
+        $this->mapper->count("name = '" . $littleBobbyTables . "'");
     }
 
     public function testSetMasterAndSlaveDbAdapterSettersAndGettersWorksAsExpected()
@@ -34,7 +49,7 @@ class ProvidesEventsFormTest extends PHPUnit_Framework_TestCase
         $this->assertSame($newAdapter, $this->mapper->getDbSlaveAdapter());
         unset($this->mapper);
     }
-    
+
     public function testSetMasterSlaveDbAdapterSetterAndGettersAlsoWorksAsExpected()
     {
         $this->mapper = new TestMapper;
