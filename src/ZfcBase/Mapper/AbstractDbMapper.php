@@ -51,9 +51,17 @@ abstract class AbstractDbMapper extends EventProvider
      */
     protected $tableName;
 
-    
-    public function __construct(Adapter $dbAdapter){
-        $this->dbAdapter = $dbAdapter;
+    /**
+     * @param Adapter $dbAdapter
+     * @param HydratorInterface $hydrator
+     */
+    public function __construct(Adapter $dbAdapter = null, $hydrator = null){
+        if (null !== $dbAdapter){
+            $this->setDbAdapter($dbAdapter);
+        }
+        if (null !== $hydrator){
+            $this->setHydrator($hydrator);
+        }
     }
 
     /**
