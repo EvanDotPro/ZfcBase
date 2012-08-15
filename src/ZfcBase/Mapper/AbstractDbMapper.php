@@ -7,8 +7,11 @@ use Zend\Db\Adapter\Driver\ResultInterface;
 use Zend\Db\ResultSet\HydratingResultSet;
 use Zend\Db\Sql\Select;
 use Zend\Db\Sql\Sql;
+use Zend\Db\Sql\Predicate\Predicate;
+use Zend\Db\Sql\Expression;
 use Zend\Stdlib\Hydrator\HydratorInterface;
 use Zend\Stdlib\Hydrator\ClassMethods;
+use Zend\Stdlib\Exception\InvalidArgumentException;
 use ZfcBase\EventManager\EventProvider;
 use ZfcBase\Db\Adapter\MasterSlaveAdapterInterface;
 
@@ -18,7 +21,7 @@ abstract class AbstractDbMapper extends EventProvider
      * @var Adapter
      */
     protected $dbAdapter;
-    
+
     /**
      * @var Adapter
      */
@@ -43,6 +46,89 @@ abstract class AbstractDbMapper extends EventProvider
      * @var Select
      */
     protected $selectPrototype;
+
+    /**
+     * @var string name of default table. Will be used when null is passed for the table name in methods
+     */
+    protected $tableName;
+
+    /**
+     * @param Adapter $dbAdapter
+     * @param HydratorInterface $hydrator
+     */
+    public function __construct(Adapter $dbAdapter = null, $entityPrototype = null, $hydrator = null){
+        if (null !== $dbAdapter){
+            $this->setDbAdapter($dbAdapter);
+        }
+        if (null !== $entityPrototype){
+            $this->setEntityPrototype($entityPrototype);
+        }
+        if (null !== $hydrator){
+            $this->setHydrator($hydrator);
+        }
+    }
+
+    /**
+     * return the row count for a table or an array of predicates
+     * @param array|Predicate $where
+     * @param string $tableName optional table name to perform count on
+     *
+     * @return int
+     */
+    public function count($where = null, $tableName = null){
+        $tableName = $tableName ?: $this->tableName;
+
+        $select = new Select($tableName);
+
+        if ($where instanceof Predicate || is_array($where)){
+            $select->where($where);
+        } elseif (null !== $where) {
+            throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
+        }
+
+
+        $select->columns(array('c' => new Expression('count(*)')));
+        $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
+        $resultSet = $stmt->execute();
+        $row = $resultSet->current();
+
+        return (int)$row['c'];
+    }
+
+    /**
+     * a basic select
+     * @param array|Predicate $where
+     * @param string $tableName
+     *
+     * @return HydratingResultSet
+     */
+    public function select($where, $tableName = null){
+        $tableName = $tableName ?: $this->tableName;
+        $select = new Select($tableName);
+
+        if ($where instanceof Predicate || is_array($where)){
+            $select->where($where);
+        } elseif (null !== $where) {
+            throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
+        }
+
+        $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
+        $result = $stmt->execute();
+
+        $resultSet = $this->getResultSet();
+
+        if (isset($entityPrototype)) {
+            $resultSet->setObjectPrototype($entityPrototype);
+        }
+
+        if (isset($hydrator)) {
+            $resultSet->setHydrator($hydrator);
+        }
+
+        $resultSet->initialize($result);
+
+        return $resultSet;
+    }
 
     /**
      * @param Select $select
@@ -114,6 +200,27 @@ abstract class AbstractDbMapper extends EventProvider
     }
 
     /**
+     * helper method to begin a transaction
+     */
+    public function beginTransaction(){
+        $this->getDbAdapter()->driver->getConnection()->beginTransaction();
+    }
+
+    /**
+     * helper method to commit
+     */
+    public function commit(){
+        $this->getDbAdapter()->driver->getConnection()->commit();
+    }
+
+    /**
+     * helper method to rollback
+     */
+    public function rollback(){
+        $this->getDbAdapter()->driver->getConnection()->getConnection()->rollback();
+    }
+
+    /**
      * @return object
      */
     public function getEntityPrototype()
@@ -152,7 +259,7 @@ abstract class AbstractDbMapper extends EventProvider
         }
         return $this;
     }
-    
+
     /**
      * @return Adapter
      */
@@ -160,7 +267,7 @@ abstract class AbstractDbMapper extends EventProvider
     {
         return $this->dbSlaveAdapter ?: $this->dbAdapter;
     }
-    
+
     /**
      * @param Adapter $dbAdapter
      * @return AbstractDbMapper
@@ -211,7 +318,7 @@ abstract class AbstractDbMapper extends EventProvider
      *
      * @return Select
      */
-    protected function select()
+    protected function getSelectForPrototype()
     {
         if (!$this->selectPrototype) {
             $this->selectPrototype = new Select;
