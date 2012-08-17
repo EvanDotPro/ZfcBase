@@ -80,17 +80,14 @@ abstract class AbstractDbMapper extends EventProvider
 
         $select = new Select($tableName);
 
-        if ($where instanceof Predicate || is_array($where)){
+        if ($where instanceof \Closure) {
+            $where($select);
+        } elseif ($where !== null) {
             $select->where($where);
-        } elseif (null !== $where) {
-            throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
         }
 
-
         $select->columns(array('c' => new Expression('count(*)')));
-        $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
-        $resultSet = $stmt->execute();
-        $row = $resultSet->current();
+        $row = $this->selectWith($select)->current();
 
         return (int)$row['c'];
     }
@@ -106,28 +103,13 @@ abstract class AbstractDbMapper extends EventProvider
         $tableName = $tableName ?: $this->tableName;
         $select = new Select($tableName);
 
-        if ($where instanceof Predicate || is_array($where)){
+        if ($where instanceof \Closure) {
+            $where($select);
+        } elseif ($where !== null) {
             $select->where($where);
-        } elseif (null !== $where) {
-            throw new InvalidArgumentException('For security reasons, $where is only accepted if it\'s an array, or predicate');
         }
 
-        $stmt = $this->getDbSlaveAdapter()->query($select->getSqlString());
-        $result = $stmt->execute();
-
-        $resultSet = $this->getResultSet();
-
-        if (isset($entityPrototype)) {
-            $resultSet->setObjectPrototype($entityPrototype);
-        }
-
-        if (isset($hydrator)) {
-            $resultSet->setHydrator($hydrator);
-        }
-
-        $resultSet->initialize($result);
-
-        return $resultSet;
+        return $this->selectWith($select);
     }
 
     /**
