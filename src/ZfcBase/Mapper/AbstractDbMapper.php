@@ -30,7 +30,7 @@ abstract class AbstractDbMapper extends EventProvider
     /**
      * @var HydratorInterface
      */
-    protected $hydrator;
+    protected $hydrator = 'Zend\Stdlib\Hydrator\ClassMethods';
 
     /**
      * @var object
@@ -207,6 +207,9 @@ abstract class AbstractDbMapper extends EventProvider
      */
     public function getEntityPrototype()
     {
+        if (is_string($this->entityPrototype) && class_exists($this->entityPrototype)) {
+            $this->entityPrototype = new $this->entityPrototype;
+        }
         return $this->entityPrototype;
     }
 
@@ -265,8 +268,8 @@ abstract class AbstractDbMapper extends EventProvider
      */
     public function getHydrator()
     {
-        if (!$this->hydrator) {
-            $this->hydrator = new ClassMethods(false);
+        if (is_string($this->hydrator) && class_exists($this->hydrator)) {
+            $this->hydrator = new $this->hydrator;
         }
         return $this->hydrator;
     }
