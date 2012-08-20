@@ -25,17 +25,15 @@ class ProvidesEventsFormTest extends PHPUnit_Framework_TestCase
     }
 
     public function testCountWithStringThrowsException(){
-        $this->mapper = new TestMapper($this->adapter);
-        $littleBobbyTables = "Robert'; DROP TABLE Students;--";
         $this->setExpectedException('InvalidArgumentException');
-        $this->mapper->count("name = '" . $littleBobbyTables . "'");
+        $this->mapper = new TestMapper($this->adapter);
+        $this->mapper->count("name = 'Robert'; DROP TABLE Students;--'");
     }
 
     public function testSelectWithStringThrowsException(){
-        $this->mapper = new TestMapper($this->adapter);
-        $littleBobbyTables = "Robert'; DROP TABLE Students;--";
         $this->setExpectedException('InvalidArgumentException');
-        $this->mapper->count("name = '" . $littleBobbyTables . "'");
+        $this->mapper = new TestMapper($this->adapter);
+        $this->mapper->count("name = 'Robert'; DROP TABLE Students;--'");
     }
 
     public function testSetMasterAndSlaveDbAdapterSettersAndGettersWorksAsExpected()
