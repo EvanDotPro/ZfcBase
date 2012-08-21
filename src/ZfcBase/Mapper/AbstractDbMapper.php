@@ -56,14 +56,15 @@ abstract class AbstractDbMapper extends EventProvider
      * @param Adapter $dbAdapter
      * @param HydratorInterface $hydrator
      */
-    public function __construct(Adapter $dbAdapter = null, $entityPrototype = null, $hydrator = null){
-        if (null !== $dbAdapter){
+    public function __construct(Adapter $dbAdapter = null, $entityPrototype = null, $hydrator = null)
+    {
+        if (null !== $dbAdapter) {
             $this->setDbAdapter($dbAdapter);
         }
-        if (null !== $entityPrototype){
+        if (null !== $entityPrototype) {
             $this->setEntityPrototype($entityPrototype);
         }
-        if (null !== $hydrator){
+        if (null !== $hydrator) {
             $this->setHydrator($hydrator);
         }
     }
@@ -75,7 +76,8 @@ abstract class AbstractDbMapper extends EventProvider
      *
      * @return int
      */
-    public function count($where = null, $tableName = null){
+    public function count($where = null, $tableName = null)
+    {
         $tableName = $tableName ?: $this->tableName;
 
         $select = new Select($tableName);
@@ -99,7 +101,8 @@ abstract class AbstractDbMapper extends EventProvider
      *
      * @return HydratingResultSet
      */
-    public function select($where, $tableName = null){
+    public function select($where, $tableName = null)
+    {
         $tableName = $tableName ?: $this->tableName;
         $select = new Select($tableName);
 
@@ -118,10 +121,10 @@ abstract class AbstractDbMapper extends EventProvider
      */
     public function selectWith(Select $select, $entityPrototype = null, HydratorInterface $hydrator = null)
     {
-        $adapter = $this->getDbSlaveAdapter();
+        $adapter   = $this->getDbSlaveAdapter();
         $statement = $adapter->createStatement();
         $select->prepareStatement($adapter, $statement);
-        $result = $statement->execute();
+        $result    = $statement->execute();
 
         $resultSet = $this->getResultSet();
 
@@ -150,7 +153,7 @@ abstract class AbstractDbMapper extends EventProvider
 
         $rowData = $this->entityToArray($entity, $hydrator);
 
-        $sql = new Sql($this->getDbAdapter(), $tableName);
+        $sql    = new Sql($this->getDbAdapter(), $tableName);
         $insert = $sql->insert();
         $insert->values($rowData);
 
@@ -184,21 +187,24 @@ abstract class AbstractDbMapper extends EventProvider
     /**
      * helper method to begin a transaction
      */
-    public function beginTransaction(){
+    public function beginTransaction()
+    {
         $this->getDbAdapter()->driver->getConnection()->beginTransaction();
     }
 
     /**
      * helper method to commit
      */
-    public function commit(){
+    public function commit()
+    {
         $this->getDbAdapter()->driver->getConnection()->commit();
     }
 
     /**
      * helper method to rollback
      */
-    public function rollback(){
+    public function rollback()
+    {
         $this->getDbAdapter()->driver->getConnection()->getConnection()->rollback();
     }
 
@@ -210,6 +216,7 @@ abstract class AbstractDbMapper extends EventProvider
         if (is_string($this->entityPrototype) && class_exists($this->entityPrototype)) {
             $this->entityPrototype = new $this->entityPrototype;
         }
+
         return $this->entityPrototype;
     }
 
@@ -221,6 +228,7 @@ abstract class AbstractDbMapper extends EventProvider
     {
         $this->entityPrototype = $entityPrototype;
         $this->resultSetPrototype = null;
+
         return $this;
     }
 
@@ -242,6 +250,7 @@ abstract class AbstractDbMapper extends EventProvider
         if ($dbAdapter instanceof MasterSlaveAdapterInterface) {
             $this->setDbSlaveAdapter($dbAdapter->getSlaveAdapter());
         }
+
         return $this;
     }
 
@@ -260,6 +269,7 @@ abstract class AbstractDbMapper extends EventProvider
     public function setDbSlaveAdapter(Adapter $dbSlaveAdapter)
     {
         $this->dbSlaveAdapter = $dbSlaveAdapter;
+
         return $this;
     }
 
@@ -271,6 +281,7 @@ abstract class AbstractDbMapper extends EventProvider
         if (is_string($this->hydrator) && class_exists($this->hydrator)) {
             $this->hydrator = new $this->hydrator;
         }
+
         return $this->hydrator;
     }
 
@@ -282,6 +293,7 @@ abstract class AbstractDbMapper extends EventProvider
     {
         $this->hydrator = $hydrator;
         $this->resultSetPrototype = null;
+
         return $this;
     }
 
@@ -295,6 +307,7 @@ abstract class AbstractDbMapper extends EventProvider
             $this->resultSetPrototype->setHydrator($this->getHydrator());
             $this->resultSetPrototype->setObjectPrototype($this->getEntityPrototype());
         }
+
         return clone $this->resultSetPrototype;
     }
 
@@ -308,6 +321,7 @@ abstract class AbstractDbMapper extends EventProvider
         if (!$this->selectPrototype) {
             $this->selectPrototype = new Select;
         }
+
         return clone $this->selectPrototype;
     }
 
@@ -322,11 +336,13 @@ abstract class AbstractDbMapper extends EventProvider
     protected function entityToArray($entity, HydratorInterface $hydrator = null)
     {
         if (is_array($entity)) {
+
             return $entity; // cut down on duplicate code
         } elseif (is_object($entity)) {
             if (!$hydrator) {
                 $hydrator = $this->getHydrator();
             }
+
             return $hydrator->extract($entity);
         }
         throw new Exception\InvalidArgumentException('Entity passed to db mapper should be an array or object.');
