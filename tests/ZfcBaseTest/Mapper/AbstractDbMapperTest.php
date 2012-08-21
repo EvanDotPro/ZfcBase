@@ -24,13 +24,15 @@ class ProvidesEventsFormTest extends PHPUnit_Framework_TestCase
         $this->masterSlaveAdapter = new MasterSlaveAdapter($this->adapter, $this->mockDriver, $this->mockPlatform);
     }
 
-    public function testCountWithStringThrowsException(){
+    public function testCountWithStringThrowsException()
+    {
         $this->setExpectedException('InvalidArgumentException');
         $this->mapper = new TestMapper($this->adapter);
         $this->mapper->count("name = 'Robert'; DROP TABLE Students;--'");
     }
 
-    public function testSelectWithStringThrowsException(){
+    public function testSelectWithStringThrowsException()
+    {
         $this->setExpectedException('InvalidArgumentException');
         $this->mapper = new TestMapper($this->adapter);
         $this->mapper->count("name = 'Robert'; DROP TABLE Students;--'");
